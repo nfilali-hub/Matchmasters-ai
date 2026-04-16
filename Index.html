@@ -187,20 +187,24 @@
             line-height: 1.6;
         }
 
-        /* Adam Image */
+        /* Adam Image - CORRECTED */
         .adam-container {
             margin: 2rem auto;
-            max-width: 280px;
+            max-width: 300px;
             position: relative;
+            text-align: center;
         }
         .adam-img {
             width: 100%;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(226,0,116,0.2);
+            max-width: 280px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0 20px 40px rgba(226,0,116,0.25));
         }
         .adam-badge {
             position: absolute;
-            bottom: -10px;
+            bottom: 20px;
             right: -10px;
             background: #E20074;
             color: white;
@@ -209,6 +213,22 @@
             font-weight: 700;
             font-size: 0.9rem;
             box-shadow: 0 4px 15px rgba(226,0,116,0.3);
+            z-index: 10;
+        }
+
+        /* Desktop adjustments for Adam */
+        @media (min-width: 768px) {
+            .adam-container {
+                max-width: 350px;
+                margin: 0 auto;
+            }
+            .adam-img {
+                max-width: 320px;
+            }
+            .adam-badge {
+                right: 0;
+                bottom: 30px;
+            }
         }
 
         /* Stats Bar */
@@ -727,6 +747,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -776,7 +797,7 @@
             <p>MatchMasters.ai koppelt ZZP'ers direct aan opdrachtgevers. Geen recruiters, geen gedoe.</p>
 
             <div class="adam-container">
-                <img src="adam_bestuur.png" alt="Adam - jouw persoonlijke matchmaker" class="adam-image">
+                <img src="adam_bestuur.png" alt="Adam - jouw persoonlijke matchmaker" class="adam-img" style="width: 100%; max-width: 300px; height: auto;">
                 <div class="adam-badge">👋 Hi, ik ben Adam!</div>
             </div>
 

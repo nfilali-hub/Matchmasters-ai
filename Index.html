@@ -187,25 +187,24 @@
             line-height: 1.6;
         }
 
-        /* Adam Image - CORRECTED */
+        /* Adam Image - MET TEKST NAAST */
         .adam-container {
             margin: 2rem auto;
-            max-width: 300px;
+            max-width: 400px;
             position: relative;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
         .adam-img {
             width: 100%;
             max-width: 280px;
             height: auto;
             display: block;
-            margin: 0 auto;
             filter: drop-shadow(0 20px 40px rgba(226,0,116,0.25));
         }
         .adam-badge {
-            position: absolute;
-            bottom: 20px;
-            right: -10px;
             background: #E20074;
             color: white;
             padding: 0.75rem 1rem;
@@ -213,21 +212,26 @@
             font-weight: 700;
             font-size: 0.9rem;
             box-shadow: 0 4px 15px rgba(226,0,116,0.3);
+            white-space: nowrap;
+            margin-left: -20px;
             z-index: 10;
+            align-self: flex-start;
+            margin-top: 20px;
         }
 
         /* Desktop adjustments for Adam */
         @media (min-width: 768px) {
             .adam-container {
-                max-width: 350px;
-                margin: 0 auto;
+                max-width: 500px;
             }
             .adam-img {
                 max-width: 320px;
             }
             .adam-badge {
-                right: 0;
-                bottom: 30px;
+                margin-left: -30px;
+                margin-top: 30px;
+                font-size: 1rem;
+                padding: 1rem 1.25rem;
             }
         }
 
@@ -797,7 +801,7 @@
             <p>MatchMasters.ai koppelt ZZP'ers direct aan opdrachtgevers. Geen recruiters, geen gedoe.</p>
 
             <div class="adam-container">
-                <img src="adam_bestuur.png" alt="Adam - jouw persoonlijke matchmaker" class="adam-img" style="width: 100%; max-width: 300px; height: auto;">
+                <img src="adam_bestuur.png" alt="Adam - jouw persoonlijke matchmaker" class="adam-img">
                 <div class="adam-badge">👋 Hi, ik ben Adam!</div>
             </div>
 

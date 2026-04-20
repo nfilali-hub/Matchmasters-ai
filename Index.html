@@ -422,7 +422,7 @@
             color: #666;
         }
 
-        /* Upload Area */
+        /* Upload Area - VERBETERD */
         .upload-box {
             border: 2px dashed #E20074;
             border-radius: 20px;
@@ -430,12 +430,31 @@
             text-align: center;
             background: #FFF0F5;
             margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-box:hover {
+            background: #ffe0ec;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(226,0,116,0.15);
+        }
+        .upload-box.dragover {
+            background: #E20074;
+            color: white;
+            border-color: #E20074;
+            transform: scale(1.02);
         }
         .upload-box i {
             font-size: 3rem;
             color: #E20074;
             margin-bottom: 1rem;
             display: block;
+            transition: all 0.3s ease;
+        }
+        .upload-box.dragover i {
+            color: white;
         }
         .upload-box h3 {
             font-size: 1.1rem;
@@ -444,6 +463,34 @@
         .upload-box p {
             color: #666;
             font-size: 0.9rem;
+        }
+        .upload-box.dragover p {
+            color: rgba(255,255,255,0.9);
+        }
+        .upload-progress {
+            display: none;
+            margin-top: 1rem;
+        }
+        .upload-progress.active {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(226,0,116,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #E20074;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        .upload-box.dragover .progress-fill {
+            background: white;
         }
 
         /* CV Form */
@@ -750,6 +797,7 @@
             .desktop-nav { display: none; }
         }
     </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -1064,12 +1112,36 @@
             <h2 class="section-title">Jouw Matches</h2>
             <p class="section-subtitle">Opdrachten die bij je profiel passen</p>
 
-            <div class="upload-box" onclick="document.getElementById('cv-file').click()">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <h3>Upload je CV</h3>
-                <p>PDF, DOC, of DOCX (max 5MB)</p>
-                <input type="file" id="cv-file" hidden accept=".pdf,.doc,.docx" onchange="handleUpload()">
-            </div>
+            <form action="https://matchmastersai.app.n8n.cloud/webhook-test/a0fcf01e-b211-4b91-ae82-346b2d94f674" method="POST" enctype="multipart/form-data" id="cvUploadForm">
+                <div class="upload-box" id="uploadBox" onclick="document.getElementById('cv-file').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload je CV</h3>
+                    <p>PDF, DOC, of DOCX (max 5MB)<br><small>Klik of sleep hier je bestand</small></p>
+                    <input type="file" id="cv-file" name="cv" hidden accept=".pdf,.doc,.docx,.txt,.rtf" onchange="handleFileSelect(this)">
+
+                    <div class="upload-progress" id="uploadProgress">
+                        <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: #E20074; font-weight: 600;">📤 Uploaden naar Adam...</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div id="selectedFile" style="display: none; margin-top: 1rem; padding: 0.75rem; background: white; border-radius: 12px; border: 2px solid #E20074;">
+                        <p style="font-size: 0.9rem; color: #333; font-weight: 600;">
+                            <i class="fas fa-file-alt" style="color: #E20074;"></i> 
+                            <span id="fileName"></span>
+                        </p>
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">Klik op "Verstuur naar Adam" om te uploaden</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none; margin-top: 1rem;">
+                    <i class="fas fa-paper-plane"></i> Verstuur naar Adam
+                </button>
+
+                <input type="hidden" name="source" value="matchmasters-web">
+                <input type="hidden" name="timestamp" id="timestampField">
+            </form>
 
             <div id="matches-list">
                 <div class="match-card">
@@ -1875,15 +1947,87 @@
         }
 
         // Matching
-        function handleUpload() {
-            showToast('📄 CV geüpload! Analyseren...');
-            document.getElementById('loading').classList.add('active');
+        function handleFileSelect(input) {
+            var file = input.files[0];
 
-            setTimeout(function() {
-                document.getElementById('loading').classList.remove('active');
-                showToast('🎯 5 matches gevonden!');
-            }, 2000);
+            if (!file) {
+                showToast('❌ Selecteer eerst een bestand');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('❌ Bestand is te groot (max 5MB)');
+                input.value = '';
+                return;
+            }
+
+            document.getElementById('fileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            document.getElementById('selectedFile').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'inline-flex';
+            document.getElementById('timestampField').value = new Date().toISOString();
+
+            showToast('✅ Bestand geselecteerd! Klik op "Verstuur naar Adam"');
         }
+
+        function setupDragDrop() {
+            var uploadBox = document.getElementById('uploadBox');
+            if (!uploadBox) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+                uploadBox.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(function(eventName) {
+                uploadBox.addEventListener(eventName, function() {
+                    uploadBox.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(function(eventName) {
+                uploadBox.addEventListener(eventName, function() {
+                    uploadBox.classList.remove('dragover');
+                }, false);
+            });
+
+            uploadBox.addEventListener('drop', function(e) {
+                var files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    var fileInput = document.getElementById('cv-file');
+                    fileInput.files = files;
+                    handleFileSelect(fileInput);
+                }
+            }, false);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('cvUploadForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    var file = document.getElementById('cv-file').files[0];
+                    if (!file) {
+                        e.preventDefault();
+                        showToast('❌ Selecteer eerst een CV bestand');
+                        return false;
+                    }
+
+                    document.getElementById('uploadProgress').classList.add('active');
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Versturen...';
+
+                    var progress = 0;
+                    var interval = setInterval(function() {
+                        progress += 10;
+                        document.getElementById('progressFill').style.width = progress + '%';
+                        if (progress >= 90) clearInterval(interval);
+                    }, 200);
+
+                    showToast('📤 CV wordt verstuurd naar Adam...');
+                });
+            }
+        });
 
         function acceptMatch() {
             showToast('🎉 Interesse getoond! Bedrijf neemt contact op.');
@@ -1937,6 +2081,7 @@
         // Init
         document.addEventListener('DOMContentLoaded', function() {
             showPage('home');
+            setupDragDrop();
         });
     </script>
 </body>
